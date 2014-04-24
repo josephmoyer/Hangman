@@ -5,8 +5,8 @@
 #include <ctime>
 
 
-const int NUMBEROFWORDS = 32154;
-void print(const char [], int);
+const int NUMBEROFWORDS = 4;
+void print(std::string, int);
 int main()
 {
 
@@ -15,7 +15,7 @@ int main()
 	//Populate word list
 	std::string wordList[NUMBEROFWORDS];
 	std::ifstream File;
-	File.open("wordlist.txt");
+	File.open("wordlist.dat");
 	if (File.is_open())
 	{
 		for (int count = 0; count < NUMBEROFWORDS; count++)
@@ -41,10 +41,21 @@ int main()
 		}
 		size = word.length();
 		//Start Game
-		char* guesses = new char[size];
+		std::string guesses = "";
 		for (int count = 0; count < size; count++)
 		{
-			guesses[count] = '_';
+			std::string temp1;
+			if (word[count] != ' ')
+			{
+				temp1 = "_";
+				guesses += temp1;
+			}
+			else
+			{
+				temp1 = " ";
+				guesses += temp1;
+			}
+				
 		}
 
 		int error = 0;
@@ -57,19 +68,19 @@ int main()
 			char guess;
 			std::cin >> guess;
 
+
 			bool errorflag = true;
 			for (int count = 0; count < size; count++)
 			{
-				if (guess == word[count])
-				{
-					guesses[count] = guess;
-					errorflag = false;
-
-				}
+					if (guess == word[count])
+					{
+						guesses[count] = guess;
+						errorflag = false;
+					}
 			}
 			if (errorflag == true)
 				error++;
-			for (int count = 0; count < size; count++)
+			for (int count = 0; count < guesses.length(); count++)
 			{
 				if (guesses[count] == '_')
 					gameover = false;
@@ -90,6 +101,7 @@ int main()
 
 		std::cout << "Do you wish to continue? Y or N?\n";
 		std::cin >> sentinel;
+
 	} while (sentinel == 'y' || sentinel == 'Y');
 
 
@@ -99,7 +111,7 @@ int main()
 	return 0;
 }
 
-void print( const char word[], int errors=0)
+void print( std::string word, int errors=0)
 {
 	switch (errors)
 	{
@@ -185,6 +197,12 @@ void print( const char word[], int errors=0)
 		break;
 	}
 
-	std::cout << "\n" << word << "\n";
+	std::cout << "\n";
+		
+	for (int count = 0; count < word.length(); count++)
+	{
+		std::cout << word[count] << " ";
+	}
+	std::cout << "\n";
 
 }
