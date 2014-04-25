@@ -5,7 +5,7 @@
 #include <ctime>
 
 
-const int NUMBEROFWORDS = 4;
+const int NUMBEROFWORDS = 32153;
 void print(std::string, int);
 int main()
 {
