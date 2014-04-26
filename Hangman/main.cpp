@@ -3,10 +3,21 @@
 #include <cmath>
 #include <string>
 #include <ctime>
+#include <sstream>
 
 
-const int NUMBEROFWORDS = 32153;
+const int NUMBEROFWORDS = 3;
 void print(std::string, int);
+
+template <typename T>
+T StringToNumber(const std::string &Text)//Text not by const reference so that the function can be used with a 
+{                               //character array as argument
+	std::stringstream ss(Text);
+	T result;
+	return ss >> result ? result : 0;
+}
+
+
 int main()
 {
 
@@ -15,16 +26,63 @@ int main()
 	//Populate word list
 	std::string wordList[NUMBEROFWORDS];
 	std::ifstream File;
-	File.open("wordlist.dat");
-	if (File.is_open())
+	try
 	{
-		for (int count = 0; count < NUMBEROFWORDS; count++)
+		File.open("wordlist.dat");
+		if (File.is_open())
 		{
-			std::getline(File, wordList[count]);
+			for (int count = 0; count < NUMBEROFWORDS; count++)
+			{
+				std::getline(File, wordList[count]);
+			}
 		}
+		File.close();
 	}
-	File.close();
+	catch (std::exception e)
+	{
+		std::cout << e.what() << "\n";
+	}
 	char sentinel;
+
+	int score=0;
+	int compscore=0;
+	int savesize = 0;
+	std::string* oldwords= NULL;
+	//Load game
+	std::ifstream SavedGame;
+	SavedGame.open("save.dat");
+	try
+	{
+		if (SavedGame.is_open())
+		{
+			std::string input;
+
+			std::getline(SavedGame, input);
+			score = StringToNumber<int>(input);
+
+			std::getline(SavedGame, input);
+			compscore = StringToNumber<int>(input);
+
+			std::getline(SavedGame, input);
+
+			savesize = StringToNumber<int>(input);
+			oldwords = new std::string[savesize];
+
+			//Fill array;
+			for (int count = 0; count < savesize; count++)
+			{
+				std::getline(SavedGame, oldwords[count]);
+			}
+		}
+
+		SavedGame.close();
+	}
+	catch (std::exception e)
+	{
+		std::cout << e.what() << "\n";
+	}
+
+
 
 	std::cout << "**************\n   Hangman\n**************\n";
 	//Start Menu
@@ -37,7 +95,14 @@ int main()
 		while (word == "")
 		{
 			index = rand() % NUMBEROFWORDS;
-			word = wordList[index];
+			bool newword=true;
+			for (int count = 0; count < savesize; count++)
+			{
+				if (wordList[index] == oldwords[count])
+					newword = false;
+			}
+			if (newword)
+				word = wordList[index];
 		}
 		size = word.length();
 		//Start Game
@@ -45,7 +110,7 @@ int main()
 		for (int count = 0; count < size; count++)
 		{
 			std::string temp1;
-			if (word[count] != ' ')
+			if (word[count] != ' '||word[count] != '-')
 			{
 				temp1 = "_";
 				guesses += temp1;
@@ -86,25 +151,50 @@ int main()
 					gameover = false;
 			}
 		}
+		savesize++;
+		//Add word to old words
+		std::string* temp = oldwords;
+		delete oldwords;
+		std::string* oldwords = new std::string[savesize];
+		for (int count = 0; count < savesize - 1; count++)
+		{
+			oldwords[count] = temp[count];
+		}
+		oldwords[savesize-1] = word;
 
 		if (error < 6)
 		{
 			print(guesses, error);
 
 			std::cout << "\nYou Won!\n";
+			score++;
 		}
 		else
 		{
 			print(word.c_str(), error);
 			std::cout << "\nYou Lost!\n";
+			compscore++;
 		}
 
-		std::cout << "Do you wish to continue? Y or N?\n";
+		std::cout << "Score (You|Comp): " << score << "|" << compscore << "\n";
+
+		//Save game
+		std::ofstream SaveGame;
+		SaveGame.open("save.dat");
+
+		SaveGame << score << "\n" << compscore << "\n" << (savesize) << "\n";
+		for (int count = 0; count < savesize; count++)
+		{
+			SaveGame << oldwords[count] << "\n";
+		}
+		SaveGame.close();
+
+		std::cout << "\nDo you wish to continue? Y or N?\n";
 		std::cin >> sentinel;
 
 	} while (sentinel == 'y' || sentinel == 'Y');
 
-
+	delete[] oldwords;
 	char tmpe_input;
 	std::cout << "\nPress any key and enter to exit.\n";
 	std::cin >> tmpe_input;
